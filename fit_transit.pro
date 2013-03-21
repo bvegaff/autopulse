@@ -40,6 +40,7 @@ ndepth=n_elements(depth)
 ;;=============================================================================
 tdur=[1d0,1.25,1.5,1.75,2d0,2.5,3d0,3.5,4d0,4.5d0,5d0,5.5d0,6d0,6.5,7d0,7.5,8d0,8.5,9d0,9.5,10d0]/24d0
 ndur=n_elements(tdur)
+max_tdur = max(tdur)
 ;;=============================================================================
 ;;2.1  Reading data from fits files
 ;;=============================================================================
@@ -331,8 +332,9 @@ mask= mask and (abs(fsap-median(fsap,20)) lt outlier_threshold)
 ;;=============================================================================
 depth_array = [0d0,3.2d-5,4d-5,5d-5,6.4d-5,8d-5,.000100,.000128,.000160,.000200,.000256,.000320,.000400,.000512,.000640,.000800,.001000,.01,.024]
 dur_array = [1d0,1.25,1.5,1.75,2d0,2.5,3d0,3.5,4d0,4.5d0,5d0,5.5d0,6d0,6.5,7d0,7.5,8d0,8.5,9d0,9.5,10d0]/24d0
+max_tdur = max(dur_array)
 if keyword_set(single_depth_dur) then begin
-    depth = depth_array[single_depth_dur[0]]
+    depth = depth_array[0,single_depth_dur[0]]
     tdur = dur_array[single_depth_dur[1]]
     ndepth = 2
     ndur = 1
@@ -372,11 +374,11 @@ for iseg=0,nseg-1 do begin
 ;;will have to offset the fit result later to match each more tailored
 ;;window (this means recalculating the chi-squared in the new window).
 ;;=============================================================================
-        indx_maxwindow=i1+where((time[i1:i2]-time[itime]-max(tdur)) lt window and $
+        indx_maxwindow=i1+where((time[i1:i2]-time[itime]-max_tdur) lt window and $
                                 (time[i1:i2]-time[itime]) gt -window and (mask[i1:i2] eq 1))
-        iout=i1+where(((((time[i1:i2]-time[itime]-max(tdur)) lt window) and ((time[i1:i2]-time[itime]-max(tdur) gt 0d0))) or $
+        iout=i1+where(((((time[i1:i2]-time[itime]-max_tdur) lt window) and ((time[i1:i2]-time[itime]-max_tdur gt 0d0))) or $
                        (((time[i1:i2]-time[itime]) gt -window) and ((time[i1:i2]-time[itime]) lt 0d0))) and (mask[i1:i2] eq 1))
-        iin=where((time[indx_maxwindow] ge time[itime]) and (time[indx_maxwindow] le (time[itime]+max(tdur))))
+        iin=where((time[indx_maxwindow] ge time[itime]) and (time[indx_maxwindow] le (time[itime]+max_tdur)))
         if(n_elements(iout) gt ord+2 and n_elements(iin) ge 1) then begin
             ttmp_maxwindow=time[indx_maxwindow]-time[itime]
             ntmp_maxwindow=double(n_elements(indx_maxwindow))
@@ -454,21 +456,27 @@ for iseg=0,nseg-1 do begin
                     chisq_array_polystep[idepth,idur,itime]=chi_stepfit
                     ;;ADDED BY BEN,1/29/13, CHANGING OUR chi0 TO BE chisq(polypulsefit compared to actual data) as opposed to chisq(polyfit)
                     ;;This will return a stronger signal for an actual transit event (effectively masking the transit out of the polyfit).
+                    chi0_orig=chi0
                     chi0 = total( ((yfit-flux)/ssap[indx])^2 )
                     ;;Save best chisq for passing up to compute_qats         
                     if(idepth eq 0) then begin
                         chisq_array[idepth,idur,itime]=chi
                     endif else begin
-                        value_best_chi=min([chi,chi_stepfit],index_best_chi)
+                        value_best_chi=min([chi,chi_stepfit,chi0_orig],index_best_chi)
                         if index_best_chi eq 0 then begin
 ;!!!Need to add dimensions to chisq_array so we can go back after the fact and
 ;plot the chi values of all three kinds of fits and analyze what
 ;happened to all three as a function of time.  EA, BLL, 24Sep2012.
                             chisq_array[idepth,idur,itime]=chi0-chi
                         endif else begin
-                            ;;Want case where step func. gives better fit (lower
-                            ;;chisq) to yield a negative value in chisq_array:
-                            chisq_array[idepth,idur,itime]=chi_stepfit-chi
+                            if index_best_chi eq 1 then begin
+                                ;;Want case where step func. gives better fit (lower
+                                ;;chisq) to yield a negative value in chisq_array:
+                                chisq_array[idepth,idur,itime]=chi_stepfit-chi
+                            endif else begin
+                                ;;Otherwise, the plain polynomial was best.
+                                chisq_array[idepth,idur,itime]=chi0_orig-chi
+                            endelse
                         endelse
                     endelse
                     ;;Calculate sigma_array_polypulse to be passed to compute_qats
