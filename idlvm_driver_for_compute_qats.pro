@@ -70,8 +70,8 @@ print,prange_str
 print,mask_planet_str
 print,working_dir_str
 print,common_data_root_dir_str
-IF(N_ELEMENTS(result) GE 7) THEN print,depthdur_str
-IF(N_ELEMENTS(result) GE 8) THEN print,mask_peak_transit_cadences_str
+IF(N_ELEMENTS(result) GE 7 AND (strlen(result[6]) ge 4)) THEN print,depthdur_str
+IF(N_ELEMENTS(result) GE 8 OR (strlen(result[6]) le 4)) THEN print,mask_peak_transit_cadences_str
 ;IF(N_ELEMENTS(result) GE 7) THEN print,kid_fits_filenames_str
 
 ;;3.  Convert string variables to correct types for ingestion into compute_qats
