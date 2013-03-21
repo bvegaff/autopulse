@@ -51,8 +51,18 @@ prange_str = result[2]
 mask_planet_str=result[3]
 working_dir_str=result[4]
 common_data_root_dir_str=result[5]
-IF(N_ELEMENTS(result) GE 7) THEN depthdur_str=result[6]
-IF(N_ELEMENTS(result) GE 8) THEN mask_peak_transit_cadences_str=result[7]
+
+IF(N_ELEMENTS(result) GE 7) THEN BEGIN
+    IF strlen(result[6]) ge 4 THEN BEGIN 
+        depthdur_str=result[6]
+    ENDIF ELSE BEGIN 
+        mask_peak_transit_cadences_str=result[6]
+    ENDELSE
+ENDIF
+IF(N_ELEMENTS(result) GE 8) THEN BEGIN 
+    mask_peak_transit_cadences_str=result[7]
+ENDIF
+
 print,'Raw argument list:'
 print,kid_str
 print,f_str

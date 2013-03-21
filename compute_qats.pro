@@ -1,7 +1,7 @@
 ; For a given KID, finds all of the files, unzips, detrends,
 ; runs QATS, saves & outputs spectrum:
 ;; @example:  IDL>  compute_qats,1432214,0.005,[1.0,300.0],mask_planet=0,working_dir='/astro/net/astro-agol/blevlee/CODE/condor/test3/test_working_dir/',common_data_root_dir='/astro/net/astro-agol/blevlee/CODE/IDL/KEPLER_REDUX/autopulse/'
-;; @example2: IDL>  compute_qats,757076,0.005,[1.0,300.0],mask_planet=0,working_dir='/astro/store/student-scratch1/bvegaff/QATSruns/KOI_chiSq/test_new_data/output/007/00757076/read_db/',common_data_root_dir='/astro/users/bvegaff/testGit/autopulse/',,single_depth_dur=[9,10]
+;; @example2: IDL>  compute_qats,757076,0.005,[1.0,300.0],mask_planet=0,working_dir='/astro/store/student-scratch1/bvegaff/QATSruns/KOI_chiSq/test_new_data/output/007/00757076/read_db/',common_data_root_dir='/astro/users/bvegaff/testGit/autopulse/',single_depth_dur=[9,10]
 
 pro compute_qats, $
                   kid0, $
