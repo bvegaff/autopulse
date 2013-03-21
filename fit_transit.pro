@@ -334,7 +334,7 @@ depth_array = [0d0,3.2d-5,4d-5,5d-5,6.4d-5,8d-5,.000100,.000128,.000160,.000200,
 dur_array = [1d0,1.25,1.5,1.75,2d0,2.5,3d0,3.5,4d0,4.5d0,5d0,5.5d0,6d0,6.5,7d0,7.5,8d0,8.5,9d0,9.5,10d0]/24d0
 max_tdur = max(dur_array)
 if keyword_set(single_depth_dur) then begin
-    depth = depth_array[0,single_depth_dur[0]]
+    depth = depth_array[[0,single_depth_dur[0]]]
     tdur = dur_array[single_depth_dur[1]]
     ndepth = 2
     ndur = 1
