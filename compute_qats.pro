@@ -1,7 +1,7 @@
 ; For a given KID, finds all of the files, unzips, detrends,
 ; runs QATS, saves & outputs spectrum:
 ;; @example:  IDL>  compute_qats,1432214,0.005,[1.0,300.0],mask_planet=0,working_dir='/astro/net/astro-agol/blevlee/CODE/condor/test3/test_working_dir/',common_data_root_dir='/astro/net/astro-agol/blevlee/CODE/IDL/KEPLER_REDUX/autopulse/'
-;; @example2: IDL>  compute_qats,757076,0.005,[1.0,300.0],mask_planet=0,working_dir='/astro/store/student-scratch1/bvegaff/QATSruns/KOI_chiSq/test_new_data/output/007/00757076/read_db/',common_data_root_dir='/astro/users/bvegaff/testGit/autopulse/'
+;; @example2: IDL>  compute_qats,757076,0.005,[1.0,300.0],mask_planet=0,working_dir='/astro/store/student-scratch1/bvegaff/QATSruns/KOI_chiSq/test_new_data/output/007/00757076/read_db/',common_data_root_dir='/astro/users/bvegaff/testGit/autopulse/',,single_depth_dur=[9,10]
 
 pro compute_qats, $
                   kid0, $
@@ -286,18 +286,6 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
                     datamax=[idepth,depth[idepth],iq,tdur[iq],pgrid[i0[0]],smaxnew[i0[0]]]
                 endif
                 max_chisq_rat[idepth,iq] = max(chisq_rat)
-                ;stuff Ben + Chris added:
-                ;Returns the cadences that are in the transit (of our peak QATS signal for the input depth and dur)
-                if keyword_set(single_depth_dur) then begin
-                    readcol,working_dir+'transit_times.txt',start_of_transit_cadences,format='l'
-                    start_of_transit_times = timetotal[start_of_transit_cadences]
-                    buffer_time = 0.5/24. ;half an hour, the buffer around our transit mask (we have duration uncertainty)
-                    in_transit_cadences = where((time ge start_of_transit_times[i]-buffer_time) and (time le start_of_transit_times[i]+tdur[iq]+buffer_time))
-                    openw,lun,working_dir+'transit_cadences.txt',/get_lun,/append
-                    printf,lun,in_transit_cadences
-                    close,lun
-                        free_lun,lun
-                endif
                     
                 ;stuff Ben added:
                 ;Calculates expected signal of transits $
@@ -311,6 +299,26 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
                 spawn,working_dir+'test_qpt'
                 readcol,working_dir+'transit_times.txt',start_of_transit_cadences,format='l'
                 start_of_transit_times = timetotal[start_of_transit_cadences]
+                ;start_of_transit_times = time[start_of_transit_cadences]
+                print,'QATS strongest signal start of transit times: ',start_of_transit_times
+                ;print,'chi_sq values around a supposed transit: ',chisq_array[1,0,where((time ge start_of_transit_times[0]-0.01) and (time le start_of_transit_times[0]+0.01))]
+                for i=0,n_elements(start_of_transit_cadences)-1 do begin
+                    print,'chi_sq in QATS input around supposed transit ',i,': ',ftotal[start_of_transit_cadences[i]-10:start_of_transit_cadences[i]+10]
+                endfor
+                ;stuff Ben + Chris added:
+                ;Returns the cadences that are in the transit (of our peak QATS signal for the input depth and dur)
+                if keyword_set(single_depth_dur) then begin
+                    openw,lun,working_dir+'transit_cadences.txt',/get_lun,/append
+                    buffer_time = 0.5/24. ;half an hour, the buffer around our transit mask (we have duration uncertainty)
+                    for i=0,n_elements(start_of_transit_cadences)-1 do begin
+                        ;in_transit_cadences = where((time ge start_of_transit_times[i]-buffer_time) and (time le start_of_transit_times[i]+tdur[iq]+buffer_time))
+                        in_transit_cadences_i = where((time ge start_of_transit_times[i]-0.005) and (time le start_of_transit_times[i]+0.005))
+                        printf,lun,in_transit_cadences_i
+                    endfor
+                    close,lun
+                    free_lun,lun
+                endif
+                
                 expected_total_delta_chiSq[idepth,iq] = 0.0
                 peak_period[idepth,iq] = tminnew[i0[0]]*gap0
                 peak_signal[idepth,iq] = smaxnew[i0[0]]
