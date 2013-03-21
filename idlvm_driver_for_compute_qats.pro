@@ -70,8 +70,8 @@ print,prange_str
 print,mask_planet_str
 print,working_dir_str
 print,common_data_root_dir_str
-IF(N_ELEMENTS(result) GE 7 AND (strlen(result[6]) ge 4)) THEN print,depthdur_str
-IF(N_ELEMENTS(result) GE 8 OR (strlen(result[6]) le 4)) THEN print,mask_peak_transit_cadences_str
+IF(N_ELEMENTS(depthdur_str) ne 0) THEN print,depthdur_str
+IF(N_ELEMENTS(mask_peak_transit_cadences_str) ne 0) THEN print,mask_peak_transit_cadences_str
 ;IF(N_ELEMENTS(result) GE 7) THEN print,kid_fits_filenames_str
 
 ;;3.  Convert string variables to correct types for ingestion into compute_qats
@@ -93,7 +93,7 @@ endif else begin
 endelse
 
 ;3.4 Convert string to array for depth_indx, dur_indx
-IF(N_ELEMENTS(result) GE 7) THEN begin
+IF(N_ELEMENTS(depthdur_str) ne 0) THEN begin
     depthdur_str_split=strsplit(depthdur_str,"'[,]",/extract,count=count_depthdur_str_split)
     print,count_depthdur_str_split
     print,depthdur_str_split
@@ -123,7 +123,7 @@ common_data_root_dir=common_data_root_dir_str
 ;    endif
 ;endif
 ;3.8 Convert mask cadences flag
-IF(N_ELEMENTS(result) GE 8) then begin
+IF(N_ELEMENTS(mask_peak_transit_cadences_str) ne 0) then begin
     mask_peak_transit_cadences=long(mask_peak_transit_cadences_str)
 endif
 
