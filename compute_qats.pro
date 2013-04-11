@@ -444,6 +444,75 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
 	Close,lun
         free_lun,lun
 ;    spawn,'mv '+working_dir+'depth_distribution.sav '+working_dir+'depth_distribution_'+kids+'.sav'
+
+;   DOING THE FOLDING LOTS OF COOOODE
+    if keyword_set(single_depth_dur) then begin
+        sorted_times = all_transit_times[sort(all_transit_times)]
+        sorted_fluxes = all_transit_fluxes[sort(all_transit_times)]
+        rounded_times = floor(sorted_times*1000)
+        unique_times = unique(rounded_times)
+        median_fluxes = dblarr(n_elements(unique_times))
+        SEM = dblarr(n_elements(unique_times))
+        for cadence=0,n_elements(unique_times)-1 do begin
+            binned_fluxes = sorted_fluxes[where(rounded_times eq unique_times[cadence])]
+            median_fluxes[cadence] = median(binned_fluxes)
+            mean_flux = mean(binned_fluxes)
+            SEM[cadence] = (total((binned_fluxes-mean_flux)^2.)/((n_elements(binned_fluxes)-1)*n_elements(binned_fluxes)))^0.5
+        endfor
+        
+        ;4.1 Calculating the period
+        readcol,'transit_cadences.txt',begin_transit_cadences,format='f'
+        temp_times = time[begin_transit_cadences]
+        bad_data_transits = where(begin_transit_cadences eq -1)
+        if n_elements(bad_data_transits) eq 1 then begin
+            if bad_data_transits ne -1 then temp_times[where(begin_transit_cadences eq -1)] = -1000.
+        endif else begin
+            temp_times[where(begin_transit_cadences eq -1)] = -1000.
+        endelse
+        temp_up = temp_times[1:n_elements(temp_times)-1]
+        temp_down = temp_times[0:n_elements(temp_times)-2]
+        good_indx = where((temp_up ne -1000.) and (temp_down ne -1000.))
+        if n_elements(good_indx) eq 1 then begin
+            if good_indx eq -1 then begin
+                period = -1
+            endif else begin
+                period = mean(temp_up[good_indx]-temp_down[good_indx])
+            endelse
+        endif else period = mean(temp_up[good_indx]-temp_down[good_indx])
+        
+        ;4.2 Calculating the signal-to-noise of the folded data
+        ;I assume all points from 0<time<t_dur are in transit
+        ;find average flux in transit, avg out of transit
+        ;delta = avg_out-avg_in
+        ;S/N = delta*sqrt(n)/sigma - sigma is the scatter around the two means
+        t_dur_array = [1,1.25,1.5,1.75,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7,7.5,8,8.5,9,9.5,10]/24.0
+        depth_array=[0.,3.2E-5,4E-5,5E-5,6.4E-5,8E-5,.000100,.000128,.000160,.000200,.000256,.000320,.000400,.000512,.000640,.000800,.001000,.01,.024]
+        t_dur = t_dur_array[single_depth_dur[1]]
+        fluxes_in_transit = sorted_fluxes[where((sorted_times le t_dur) and (sorted_times ge 0.0))]
+        fluxes_out_of_transit = sorted_fluxes[where((sorted_times ge t_dur) or (sorted_times le 0.0))]
+        mean_in_transit = mean(fluxes_in_transit)
+        mean_out_of_transit = mean(fluxes_out_of_transit)
+        delta = -1.*mean_in_transit+mean_out_of_transit
+        sigma = (total((fluxes_in_transit - mean_in_transit)^2. + (fluxes_out_of_transit - mean_out_of_transit)^2.)/(n_elements(sorted_fluxes)-1))^0.5
+        SN = delta/sigma*n_elements(sorted_fluxes)^0.5
+        
+        ;4.3 Plotting
+        !p.multi=0
+        set_plot,'ps'
+        kids = strcompress(kid0,/remove_all)
+        device,filename=working_dir+'kid'+kids+'_folded.ps'
+        plot,unique_times/1000.,median_fluxes,/ynozero,xtitle='Time, days',ytitle='Relative flux',$
+            tit='KID:'+string(kid0,format='(I10)')+'; P:'+string(period,format='(f6.2)')+$
+                '; Dep:'+string(depth_array(single_depth_dur[0])*10.^6.,format='(f6.0)')+$
+                '; Dur:'+string(t_dur_array(single_depth_dur[1])*24.,format='(f4.1)')+$
+                '; SN:'+string(SN,format='(f5.1)')
+        oploterror,unique_times/1000.,median_fluxes,SEM
+        device,/close
+    endif
+
+    
+    
+
     print,'Finished'
     cd,current_dir
 ;        c=get_kbrd(1)
