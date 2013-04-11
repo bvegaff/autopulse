@@ -1,5 +1,5 @@
 ; For a given KID, finds all of the files, unzips, detrends,
-; runs QATS, saves & outputs spectrum:
+; runs QATS, saves and outputs spectrum. 
 ;; @example:  IDL>  compute_qats,1432214,0.005,[1.0,300.0],mask_planet=0,working_dir='/astro/net/astro-agol/blevlee/CODE/condor/test3/test_working_dir/',common_data_root_dir='/astro/net/astro-agol/blevlee/CODE/IDL/KEPLER_REDUX/autopulse/'
 ;; @example2: IDL>  compute_qats,757076,0.005,[1.0,300.0],mask_planet=0,working_dir='/astro/store/student-scratch1/bvegaff/QATSruns/KOI_chiSq/test_new_data/output/007/00757076/read_db/',common_data_root_dir='/astro/users/bvegaff/testGit/autopulse/',single_depth_dur=[9,10]
 
@@ -13,7 +13,7 @@ pro compute_qats, $
                   kid_fits_filenames=kid_fits_filenames, $
                   single_depth_dur=single_depth_dur, $
                   mask_peak_transit_cadences=mask_peak_transit_cadences
-                  
+
 ;1.  Set up internal variables
 if keyword_set(kid_fits_filenames) then begin
     do_read_lightcurve_from_local_fitsfile_orig=1
@@ -81,7 +81,7 @@ for ikid=0,nkid-1 do begin
 ;    for i=0,n_elements(fnamegz)-1 do spawn,'gunzip '+fnamegz[i]
         spawn,'ls '+common_data_root_dir+'DATA/*'+kids+'*fits > fits_list.txt'
         pdot=dblarr(nplanet)
-        print,'KOI info: ',KOI[indx],t0[indx],period[indx],tdur[indx]
+        print,'KOI info: ',KOI[indx],'t0',t0[indx],'period',period[indx],'tdur',tdur[indx]
         t0_curr=t0[indx]+54900d0
         period_curr=period[indx]
         pdot_curr=pdot
@@ -299,12 +299,12 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
                 spawn,working_dir+'test_qpt'
                 readcol,working_dir+'transit_times.txt',start_of_transit_cadences,format='l'
                 start_of_transit_times = timetotal[start_of_transit_cadences]
-                ;start_of_transit_times = time[start_of_transit_cadences]
-                print,'QATS strongest signal start of transit times: ',start_of_transit_times
+                ;print,'QATS strongest signal start of transit times: ',start_of_transit_times
                 ;print,'chi_sq values around a supposed transit: ',chisq_array[1,0,where((time ge start_of_transit_times[0]-0.01) and (time le start_of_transit_times[0]+0.01))]
-                for i=0,n_elements(start_of_transit_cadences)-1 do begin
-                    print,'chi_sq in QATS input around supposed transit ',i,': ',ftotal[start_of_transit_cadences[i]-10:start_of_transit_cadences[i]+10]
-                endfor
+                ;for i=0,n_elements(start_of_transit_cadences)-1 do begin
+                ;    print,'chi_sq in QATS input around supposed transit ',i,': ',ftotal[start_of_transit_cadences[i]-5:start_of_transit_cadences[i]+5]
+                ;endfor
+
                 ;stuff Ben + Chris added:
                 ;Returns the cadences that are in the transit (of our peak QATS signal for the input depth and dur)
                 if keyword_set(single_depth_dur) then begin

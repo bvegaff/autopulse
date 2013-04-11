@@ -118,7 +118,6 @@ bic_chosen_polynomial_orders=lonarr(number_of_bic_test_regions)
 for i=0L,number_of_bic_test_regions-1 do begin
 ;max_uninterrupted_length_between_gaps=max(uninterrupted_length_between_gaps,index_max_uninterrupted_length_between_gaps)
     max_uninterrupted_length_between_gaps=uninterrupted_length_between_gaps[index_uninterrupted_length_between_gaps_sorted[i]]
-    print,'uninterrupted length between gaps for test region #',i,': ',max_uninterrupted_length_between_gaps
     index_max_uninterrupted_length_between_gaps=index_uninterrupted_length_between_gaps_sorted[i]
     index_start_nogap_region=index_time_interval_gaps[index_max_uninterrupted_length_between_gaps]+1
     index_end_nogap_region=index_time_interval_gaps[index_max_uninterrupted_length_between_gaps+1]-1
@@ -164,12 +163,12 @@ for i=0L,number_of_bic_test_regions-1 do begin
 ;;3.3 Set up 'window' before & after transit for fitting polynomial:
 ;;=============================================================================
 ;window=1d0
-    ;window=max(tdur) ;TESTINGGGG REMOVED THE BELOW window= declaration!!!!!! 2/15 bvw - does bic depend on window size?
     time_nogap_region_range=max(time_nogap_region) - min(time_nogap_region)
-    print,'time range of this region: ',(time_nogap_region_range);-max(tdur))/2.0
+;print,'time range of this region: ',(time_nogap_region_range);-max(tdur))/2.0
 ;print,'******',peak_period/2.0
-    window=min([ (time_nogap_region_range-max(tdur))/2.0 ,peak_period/2.0])
-    print,'window=',window,' median_time_interval=',median_time_interval  ;TESTTTTTTTTTTTTTTTTTTTTT
+;   window=min([ (time_nogap_region_range-max(tdur))/2.0 ,peak_period/2.0])
+;SOMETIMES peak_period is very small, removing for now
+    window=min([ (time_nogap_region_range-max(tdur))/2.0,max(tdur)])
     single_fit_time_baseline=max(tdur)+2.0*window
     index_start_nogap_region_trimmed=index_start_nogap_region
     dummy=min(abs(time-time[index_start_nogap_region]-single_fit_time_baseline),index_end_nogap_region_trimmed)
@@ -359,7 +358,7 @@ if keyword_set(plot_transit_detrends) then begin
     loadct,38
     colors=[0,30,60,90,220]
     readcol,working_dir+'transit_cadences.txt',begin_transit_cadences,format='f'
-    print,'times of transit read into detrending: ',time[begin_transit_cadences]
+    print,'times of transit read into detrending: ',time[begin_transit_cadences[where(begin_transit_cadences ne -1)]]
 endif
 
 ;;=============================================================================
@@ -535,9 +534,9 @@ for iseg=0,nseg-1 do begin
                             endelse
                         endelse
                     endelse
-                    if keyword_set(plot_transit_detrends) then begin
-                        if indx_transit ne -1 then print,chisq_array[idepth,idur,itime];TEST
-                    endif
+                    ;if keyword_set(plot_transit_detrends) then begin
+                    ;    if indx_transit ne -1 then print,chisq_array[idepth,idur,itime];TEST
+                    ;endif
                     ;;Calculate sigma_array_polypulse to be passed to compute_qats
                     diff_y=flux_model-yfit
                     sorted_window=diff_y[sort(diff_y)]
@@ -566,7 +565,7 @@ for iseg=0,nseg-1 do begin
                 endfor
             endif
         endfor
-        ;if(itime mod 100 eq 0) then print,'completed: ',itime*ndur*ndepth/double(nt*ndepth*ndur)*100d0,'% steps'
+        ;if(itime mod 900 eq 0) then print,'completed: ',itime*ndur*ndepth/double(nt*ndepth*ndur)*100d0,'% steps' ;-so annoying to see
     endfor
     for idur=0,ndur-1 do begin
         inz= where(reform(double(size_array[idur,i1:i2])) ne 0d0)

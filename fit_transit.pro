@@ -168,7 +168,7 @@ for i=0L,number_of_bic_test_regions-1 do begin
 ;print,'******',peak_period/2.0
 ;    window=min([ (time_nogap_region_range-max(tdur))/2.0 ,peak_period/2.0]) 
 ;SOMETIMES peak_period is very small, removing for now
-    window=min([ (time_nogap_region_range-max(tdur))/2.0 ,max(tdur)]) 
+    window=min([ (time_nogap_region_range-max(tdur))/2.0,max(tdur)])
     single_fit_time_baseline=max(tdur)+2.0*window
     index_start_nogap_region_trimmed=index_start_nogap_region
     dummy=min(abs(time-time[index_start_nogap_region]-single_fit_time_baseline),index_end_nogap_region_trimmed)
@@ -507,7 +507,7 @@ for iseg=0,nseg-1 do begin
                 endfor
             endif
         endfor
-        if(itime mod 100 eq 0) then print,'completed: ',itime*ndur*ndepth/double(nt*ndepth*ndur)*100d0,'% steps'
+        if(itime mod 1000 eq 0) then print,'completed: ',itime*ndur*ndepth/double(nt*ndepth*ndur)*100d0,'% steps'
     endfor
     for idur=0,ndur-1 do begin
         inz= where(reform(double(size_array[idur,i1:i2])) ne 0d0)

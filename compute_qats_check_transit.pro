@@ -15,7 +15,7 @@ pro compute_qats_check_transit, $
                   working_dir=working_dir, $
                   common_data_root_dir=common_data_root_dir, $
                   kid_fits_filenames=kid_fits_filenames, $
-                  single_depth_dur=single_depth_dur, $ ;currently set-up as positions in our depth and duration arrays
+                  single_depth_dur=single_depth_dur, $
                   mask_peak_transit_cadences=mask_peak_transit_cadences,$
                   plot_transit_detrends=plot_transit_detrends ;1 is true, must have a single_depth_dur set as well
                   
@@ -40,7 +40,9 @@ endif else begin
     working_dir='./'
 endelse
 if keyword_set(common_data_root_dir) then begin
-    common_data_root_dir=common_data_root_dir+PATH_SEP()
+    if strmid(common_data_root_dir,strlen(common_data_root_dir)-1) ne '/' then begin
+        common_data_root_dir=common_data_root_dir+PATH_SEP()
+    endif else common_data_root_dir=common_data_root_dir
 endif else begin
     common_data_root_dir='./'
 endelse
@@ -305,17 +307,17 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
                     free_lun,lun
                 spawn,working_dir+'test_qpt'
                 readcol,working_dir+'transit_times.txt',start_of_transit_cadences,format='l'
-                start_of_transit_times = timetotal[start_of_transit_cadences] ;TESTINGGGG
+                start_of_transit_times = timetotal[start_of_transit_cadences]
                 ;start_of_transit_times = time[start_of_transit_cadences]
                 print,'QATS strongest signal start of transit times: ',start_of_transit_times
                 ;print,'chi_sq values around a supposed transit: ',chisq_array[1,0,where((time ge start_of_transit_times[0]-0.01) and (time le start_of_transit_times[0]+0.01))]
-                for i=0,n_elements(start_of_transit_cadences)-1 do begin
-                    print,'chi_sq in QATS input around supposed transit ',i,': ',ftotal[start_of_transit_cadences[i]-10:start_of_transit_cadences[i]+10]
-                endfor
+                ;for i=0,n_elements(start_of_transit_cadences)-1 do begin
+                    ;print,'chi_sq in QATS input around supposed transit ',i,': ',ftotal[start_of_transit_cadences[i]-10:start_of_transit_cadences[i]+10]
+                ;endfor
                 ;stuff Ben + Chris added:
                 ;Returns the cadences that are in the transit (of our peak QATS signal for the input depth and dur)
                 if keyword_set(single_depth_dur) then begin
-                    openw,lun,working_dir+'transit_cadences.txt',/get_lun,/append
+                    openw,lun,working_dir+'transit_cadences.txt',/get_lun;For this check, no need to append, and only looking @ first cadence in transit. ,/append
                     buffer_time = 0.5/24. ;half an hour, the buffer around our transit mask (we have duration uncertainty)
                     for i=0,n_elements(start_of_transit_cadences)-1 do begin
                         ;in_transit_cadences = where((time ge start_of_transit_times[i]-buffer_time) and (time le start_of_transit_times[i]+tdur[iq]+buffer_time))
@@ -462,7 +464,7 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
 ;    spawn,'gzip '+working_dir+'kid'+kids+'_qats.ps'
 ;   spawn,'python '+common_data_root_dir+'input_txt_to_db.py '+working_dir+'qats_trim.txt '+kids
 ;	spawn,'rm '+working_dir+'qats_trim.txt'
-    spawn,'gzip '+working_dir+'qats_trim.txt'
+;    spawn,'gzip '+working_dir+'qats_trim.txt'
 ;	spawn,'rm '+working_dir+'depth_distribution.sav'
 ;	spawn,'rm '+working_dir+'kid'+kids+'_qats.ps'
 ;    spawn,'rm '+working_dir+'transit_times.txt'
