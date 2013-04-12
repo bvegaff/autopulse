@@ -311,14 +311,28 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
                     openw,lun,working_dir+'transit_cadences.txt',/get_lun,/append
                     buffer_time = 0.5/24. ;half an hour, the buffer around our transit mask (we have duration uncertainty)
                     for i=0,n_elements(start_of_transit_cadences)-1 do begin
-                        ;in_transit_cadences = where((time ge start_of_transit_times[i]-buffer_time) and (time le start_of_transit_times[i]+tdur[iq]+buffer_time))
-                        in_transit_cadences_i = where((time ge start_of_transit_times[i]-0.005) and (time le start_of_transit_times[i]+0.005))
+                        in_transit_cadences_i = where((time ge start_of_transit_times[i]-buffer_time) and (time le start_of_transit_times[i]+tdur[iq]+buffer_time))
+                        ;in_transit_cadences_i = where((time ge start_of_transit_times[i]-0.005) and (time le start_of_transit_times[i]+0.005))
                         printf,lun,in_transit_cadences_i
                     endfor
                     close,lun
                     free_lun,lun
                 endif
                 
+                ;stuff Ben added to look at the folding
+                if keyword_set(single_depth_dur) then begin
+                    for i=0,n_elements(start_of_transit_cadences)-1 do begin
+                        transit_window = where((time ge start_of_transit_times[i]-window) and (time le start_of_transit_times[i]+tdur[iq]+window))
+                        if i eq 0 then begin
+                            all_transit_fluxes = fsap[transit_window]
+                            all_transit_times = time[transit_window]
+                        endif else begin
+                            all_transit_fluxes = [all_transit_fluxes,fsap[transit_window]]
+                            all_transit_times = [all_transit_times,time[transit_window]]
+                        endelse
+                    endfor
+                endif
+
                 expected_total_delta_chiSq[idepth,iq] = 0.0
                 peak_period[idepth,iq] = tminnew[i0[0]]*gap0
                 peak_signal[idepth,iq] = smaxnew[i0[0]]
@@ -461,25 +475,8 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
         endfor
         
         ;4.1 Calculating the period
-        readcol,'transit_cadences.txt',begin_transit_cadences,format='f'
-        temp_times = time[begin_transit_cadences]
-        bad_data_transits = where(begin_transit_cadences eq -1)
-        if n_elements(bad_data_transits) eq 1 then begin
-            if bad_data_transits ne -1 then temp_times[where(begin_transit_cadences eq -1)] = -1000.
-        endif else begin
-            temp_times[where(begin_transit_cadences eq -1)] = -1000.
-        endelse
-        temp_up = temp_times[1:n_elements(temp_times)-1]
-        temp_down = temp_times[0:n_elements(temp_times)-2]
-        good_indx = where((temp_up ne -1000.) and (temp_down ne -1000.))
-        if n_elements(good_indx) eq 1 then begin
-            if good_indx eq -1 then begin
-                period = -1
-            endif else begin
-                period = mean(temp_up[good_indx]-temp_down[good_indx])
-            endelse
-        endif else period = mean(temp_up[good_indx]-temp_down[good_indx])
-        
+        period = pgrid[i0[0]]
+
         ;4.2 Calculating the signal-to-noise of the folded data
         ;I assume all points from 0<time<t_dur are in transit
         ;find average flux in transit, avg out of transit

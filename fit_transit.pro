@@ -419,19 +419,6 @@ for iseg=0,nseg-1 do begin
                                              plot_to_screen=0 $
                                            )
 ;;=============================================================================
-;;6.2.1.2.2.1a Save transit window if we're at a beginning of a transit
-                if keyword_set(single_depth_dur) then begin
-                    if indx_transit ne -1 then begin
-                        if n_elements(all_transit_fluxes) eq 0 then begin
-                            all_transit_fluxes = flux
-                            all_transit_times = ttmp
-                        endif else begin
-                            all_transit_fluxes = [all_transit_fluxes,flux]
-                            all_transit_times = [all_transit_times,ttmp]
-                        endelse
-                    endif
-                endif
-;;=============================================================================
 ;;6.2.1.2.2.1 Recalculate the chi-squared for the polynomial+step fit, when confined to this window
 ;;=============================================================================
 ;;6.2.1.2.2.1.1 Find where indx appears in indx_maxwindow:
@@ -545,8 +532,7 @@ depth, $
   mask, $
   err_flux, $
   sigma_array_polypulse, $
-  all_transit_times,$
-  all_transit_fluxes,$
+  window, $
   filename=working_dir+'depth_distribution.sav'
 spawn,'touch '+working_dir+fit_transit_donefile_name
 ;save,/all,filename='depth_distribution'+kid+'.sav'
