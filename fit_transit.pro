@@ -50,6 +50,7 @@ if keyword_set(do_read_lightcurve_from_local_fitsfile) then begin
     time=double(time)
     fflat=double(fflat)
     sig=double(sig)
+
     db_err_flux=sig
 endif else begin
 ;;=============================================================================
@@ -70,9 +71,12 @@ endif else begin
 ;oplot,db_time,db_flux/median(db_flux),color=255,psym=3
 ;;Assign database-extracted light curve into the business end
 ;;variables
-    time=db_time
-    fflat=db_flux
-    sig=db_err_flux
+
+;TEST LIGHTCURVE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ;time=db_time
+    ;fflat=db_flux
+    ;sig=db_err_flux
+    readcol,'fake1.txt',time,fflat,sig,format='d,d,d'
 endelse
 
 ;;=============================================================================
@@ -362,7 +366,7 @@ for iseg=0,nseg-1 do begin
 ;;=============================================================================
 ;;6.2.1  Commence the loop over window position within the segment
 ;;=============================================================================
-    for itime=i1,i2 do begin
+    for itime=LONG(i1),LONG(i2) do begin
 ;    for itime=i1,i2 do begin
 ;        print,iseg,itime
 ;;=============================================================================
