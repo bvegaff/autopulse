@@ -452,7 +452,7 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
     OpenW,lun,working_dir+'qats_trim.txt',/get_lun
 	for i=0,ndepth-1 do begin
 		for j=0,ndur-1 do begin
-			printf,lun,sntrim[i,j,0:nperiod-1],FORMAT='(2290(F10.3,x))'
+			printf,lun,sntrim[i,j,0:nperiod-1],FORMAT='(2290(F13.3,x))'
 		endfor
 	endfor
 	Close,lun

@@ -73,10 +73,10 @@ endif else begin
 ;;variables
 
 ;TEST LIGHTCURVE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ;time=db_time
-    ;fflat=db_flux
-    ;sig=db_err_flux
-    readcol,'fake1.txt',time,fflat,sig,format='d,d,d'
+    time=db_time
+    fflat=db_flux
+    sig=db_err_flux
+;    readcol,'fake1.txt',time,fflat,sig,format='d,d,d'
 endelse
 
 ;;=============================================================================
