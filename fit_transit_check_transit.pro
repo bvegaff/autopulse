@@ -71,9 +71,10 @@ endif else begin
 ;oplot,db_time,db_flux/median(db_flux),color=255,psym=3
 ;;Assign database-extracted light curve into the business end
 ;;variables
-    time=db_time
-    fflat=db_flux
-    sig=db_err_flux
+    ;time=db_time
+    ;fflat=db_flux
+    ;sig=db_err_flux
+    readcol,'fake1.txt',time,fflat,sig,format='d,d,d' ;checking out the test lightcurve ~!!!!!!!!!!!
 endelse
 
 ;;=============================================================================
@@ -373,7 +374,7 @@ for iseg=0,nseg-1 do begin
 ;=============================================================================
 ;;6.2.1  Commence the loop over window position within the segment
 ;;=============================================================================
-    for itime=i1,i2 do begin
+    for itime=LONG(i1),LONG(i2) do begin
 ;    for itime=i1,i2 do begin
 ;        print,iseg,itime
 ;;=============================================================================
@@ -402,7 +403,7 @@ for iseg=0,nseg-1 do begin
             ;;Do best fit for polynomial multiplier and depth/height of
             ;;step.
             status=calc_stepfit(data_x=double(ttmp_maxwindow),data_y=double(fsap[indx_maxwindow]),measure_errors=double(ssap[indx_maxwindow]),poly_order=ord,chisq=chi_stepfit_maxwindow,yfit=yfit_stepfit_maxwindow)
-        endif
+        endif else continue ;should stop any further calculations @ this itime
 ;;=============================================================================
 ;;6.2.1.2  Commence the loops over pulse durations and depths
 ;;=============================================================================
@@ -415,7 +416,9 @@ for iseg=0,nseg-1 do begin
             ;fit_window[itime] = n_elements(indx) ;TESTINGNGGGG***************************888
             iout=i1+where(((((time[i1:i2]-time[itime]-tdur[idur]) lt window) and ((time[i1:i2]-time[itime]-tdur[idur] gt 0d0))) or $
                            (((time[i1:i2]-time[itime]) gt -window) and ((time[i1:i2]-time[itime]) lt 0d0))) and (mask[i1:i2] eq 1))
-            iin=where((time[indx] ge time[itime]) and (time[indx] le (time[itime]+tdur[idur])))
+            if indx[0] ne -1 then begin
+                iin=where((time[indx] ge time[itime]) and (time[indx] le (time[itime]+tdur[idur])))
+            endif else iin = -1
             if(n_elements(iout) gt ord+2 and n_elements(iin) ge 1) then begin
                 ttmp=time[indx]-time[itime]
                 ntmp=double(n_elements(indx))
@@ -447,7 +450,7 @@ for iseg=0,nseg-1 do begin
                         legend,['raw','poly','step','polypulse','polypulse*model'],linestyle=[0,0,0,0,0],color=colors,$;
                            thick=3;,/top,/right;,box=0,charthick=2
 
-                        oplot,time[indx],yfit0,color=colors[1]
+                 ;       oplot,time[indx],yfit0,color=colors[1]
                         if n_elements(all_transit_fluxes) eq 0 then begin
                             all_transit_fluxes = flux
                             all_transit_times = ttmp
@@ -474,11 +477,11 @@ for iseg=0,nseg-1 do begin
                 yfit_stepfit=yfit_stepfit_maxwindow[indx_sub]
                 chi_stepfit=total( ((yfit_stepfit-flux)/ssap[indx])^2 )
 ;;6.2.1.2.2.1.2b Plot if we're at a beginning of a transit
-                if keyword_set(plot_transit_detrends) then begin
-                    if indx_transit ne -1 then begin
-                        oplot,time[indx],yfit_stepfit,color=colors[2]
-                    endif
-                endif
+                ;if keyword_set(plot_transit_detrends) then begin
+                ;    if indx_transit ne -1 then begin
+                ;        oplot,time[indx],yfit_stepfit,color=colors[2]
+                ;    endif
+                ;endif
 ;;=============================================================================
 ;;6.2.1.2.3 Commence loop over pulse depth and do best fit over depths for transit pulse
 ;;=============================================================================
@@ -498,7 +501,7 @@ for iseg=0,nseg-1 do begin
 
 ;;6.2.1.2.3b Plot if we're at the beginning of a transit
                     if keyword_set(plot_transit_detrends) then begin
-                        if indx_transit ne -1 then begin
+                        if (indx_transit ne -1) and (idepth eq 1) then begin
                             oplot,time[indx],yfit,color=colors[3]
                             oplot,time[indx],yfit*model,color=colors[4]
                             ;print,'chisq_poly: ',chi0,' chisq_step: ',chi_stepfit,' chisq_pulse: ',chi
@@ -542,6 +545,13 @@ for iseg=0,nseg-1 do begin
                     sorted_window=diff_y[sort(diff_y)]
                     npts=n_elements(sorted_window)
                     sigma_array_polypulse[idepth,idur,itime]=(sorted_window[long(0.8415*npts)]-sorted_window[long(0.1585*npts)])/2.
+                    ;checking the sigma array that will be sent to compute_qats for the expected signal
+                    if keyword_set(plot_transit_detrends) then begin
+                        if (indx_transit ne -1) and (idepth eq 1) then begin
+                            print,'sigma of the polypulse fit for this transit: ',sigma_array_polypulse[idepth,idur,itime]
+                            print,'t0 and chisq_array value for this transit: ',time[itime],chisq_array[idepth,idur,itime]
+                        endif
+                    endif
 ;print,idepth,idur,itime,chisq_array[idepth,idur,itime]
 ;+Debug plotting
                                 ;if(chi0-chi gt 20d0) then begin
@@ -565,7 +575,7 @@ for iseg=0,nseg-1 do begin
                 endfor
             endif
         endfor
-        ;if(itime mod 900 eq 0) then print,'completed: ',itime*ndur*ndepth/double(nt*ndepth*ndur)*100d0,'% steps' ;-so annoying to see
+        if(itime mod 2000 eq 0) then print,'completed: ',itime*ndur*ndepth/double(nt*ndepth*ndur)*100d0,'% steps' ;-so annoying to see
     endfor
     for idur=0,ndur-1 do begin
         inz= where(reform(double(size_array[idur,i1:i2])) ne 0d0)

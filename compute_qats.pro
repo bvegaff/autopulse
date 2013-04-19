@@ -325,10 +325,10 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
                         transit_window = where((time ge start_of_transit_times[i]-window) and (time le start_of_transit_times[i]+tdur[iq]+window))
                         if i eq 0 then begin
                             all_transit_fluxes = fsap[transit_window]
-                            all_transit_times = time[transit_window]
+                            all_transit_times = time[transit_window]-start_of_transit_times[i]
                         endif else begin
                             all_transit_fluxes = [all_transit_fluxes,fsap[transit_window]]
-                            all_transit_times = [all_transit_times,time[transit_window]]
+                            all_transit_times = [all_transit_times,time[transit_window]-start_of_transit_times[i]]
                         endelse
                     endfor
                 endif
@@ -502,7 +502,7 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
             tit='KID:'+string(kid0,format='(I10)')+'; P:'+string(period,format='(f6.2)')+$
                 '; Dep:'+string(depth_array(single_depth_dur[0])*10.^6.,format='(f6.0)')+$
                 '; Dur:'+string(t_dur_array(single_depth_dur[1])*24.,format='(f4.1)')+$
-                '; SN:'+string(SN,format='(f5.1)')
+                '; SN:'+string(SN,format='(f9.1)')
         oploterror,unique_times/1000.,median_fluxes,SEM
         device,/close
     endif

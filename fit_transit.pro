@@ -73,10 +73,10 @@ endif else begin
 ;;variables
 
 ;TEST LIGHTCURVE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ;time=db_time
-    ;fflat=db_flux
-    ;sig=db_err_flux
-    readcol,'fake1.txt',time,fflat,sig,format='d,d,d'
+    time=db_time
+    fflat=db_flux
+    sig=db_err_flux
+    ;readcol,'fake1.txt',time,fflat,sig,format='d,d,d'
 endelse
 
 ;;=============================================================================
@@ -389,7 +389,7 @@ for iseg=0,nseg-1 do begin
             ;;Do best fit for polynomial multiplier and depth/height of
             ;;step.
             status=calc_stepfit(data_x=double(ttmp_maxwindow),data_y=double(fsap[indx_maxwindow]),measure_errors=double(ssap[indx_maxwindow]),poly_order=ord,chisq=chi_stepfit_maxwindow,yfit=yfit_stepfit_maxwindow)
-        endif
+        endif else continue ;this should skip any analysis @ this itime
 ;;=============================================================================
 ;;6.2.1.2  Commence the loops over pulse durations and depths
 ;;=============================================================================
@@ -401,7 +401,9 @@ for iseg=0,nseg-1 do begin
                           (time[i1:i2]-time[itime]) gt -window and (mask[i1:i2] eq 1))
             iout=i1+where(((((time[i1:i2]-time[itime]-tdur[idur]) lt window) and ((time[i1:i2]-time[itime]-tdur[idur] gt 0d0))) or $
                            (((time[i1:i2]-time[itime]) gt -window) and ((time[i1:i2]-time[itime]) lt 0d0))) and (mask[i1:i2] eq 1))
-            iin=where((time[indx] ge time[itime]) and (time[indx] le (time[itime]+tdur[idur])))
+            if indx[0] ne -1 then begin
+                iin=where((time[indx] ge time[itime]) and (time[indx] le (time[itime]+tdur[idur])))
+            endif else iin = -1
             if(n_elements(iout) gt ord+2 and n_elements(iin) ge 1) then begin
                 ttmp=time[indx]-time[itime]
                 ntmp=double(n_elements(indx))
