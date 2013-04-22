@@ -313,7 +313,7 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
                     for i=0,n_elements(start_of_transit_cadences)-1 do begin
                         in_transit_cadences_i = where((time ge start_of_transit_times[i]-buffer_time) and (time le start_of_transit_times[i]+tdur[iq]+buffer_time))
                         ;in_transit_cadences_i = where((time ge start_of_transit_times[i]-0.005) and (time le start_of_transit_times[i]+0.005))
-                        printf,lun,in_transit_cadences_i
+                        printf,lun,in_transit_cadences_i,format='(1(I))'
                     endfor
                     close,lun
                     free_lun,lun
@@ -434,6 +434,11 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
         endfor
     endfor
     print,'time for QATS part of code: '+string(systime(1)-temptime) ;CHECKING RUN TIMMEEEEE
+
+    ;creating timestamp for output files (so each iteration isn't overwritten)
+    temp1 = strjoin(strsplit(systime(0),/extract),'')
+    timestamp = strjoin(strsplit(x_1,/extract,':'))
+
     cd,current_dir
     device,/close
 ;    save,time,fsap,f,sntot,pmin,pmax,depth,ndepth,tdur,ndur,ephem,tt,datamax,filename=working_dir+'qats_depth_dur_'+kids+'.sav'
@@ -449,7 +454,7 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
     endfor
     Close,lun
         free_lun,lun
-    OpenW,lun,working_dir+'qats_trim.txt',/get_lun
+    OpenW,lun,working_dir+'qats_trim'+timestamp+'.txt',/get_lun
 	for i=0,ndepth-1 do begin
 		for j=0,ndur-1 do begin
 			printf,lun,sntrim[i,j,0:nperiod-1],FORMAT='(2290(F13.3,x))'
@@ -497,7 +502,7 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
         !p.multi=0
         set_plot,'ps'
         kids = strcompress(kid0,/remove_all)
-        device,filename=working_dir+'kid'+kids+'_folded.ps'
+        device,filename=working_dir+'kid'+kids+'_folded'+timestamp+'.ps'
         plot,unique_times/1000.,median_fluxes,/ynozero,xtitle='Time, days',ytitle='Relative flux',$
             tit='KID:'+string(kid0,format='(I10)')+'; P:'+string(period,format='(f6.2)')+$
                 '; Dep:'+string(depth_array(single_depth_dur[0])*10.^6.,format='(f6.0)')+$
@@ -520,7 +525,7 @@ print,systime(/UTC)+'|Starting FORTRAN version of test_qpt...'
 ;    spawn,'gzip '+working_dir+'kid'+kids+'_qats.ps'
 ;   spawn,'python '+common_data_root_dir+'input_txt_to_db.py '+working_dir+'qats_trim.txt '+kids
 ;	spawn,'rm '+working_dir+'qats_trim.txt'
-    spawn,'gzip '+working_dir+'qats_trim.txt'
+    spawn,'gzip '+working_dir+'qats_trim*.txt'
 	spawn,'rm '+working_dir+'depth_distribution.sav'
 	spawn,'rm '+working_dir+'kid'+kids+'_qats.ps'
     spawn,'rm '+working_dir+'transit_times.txt'

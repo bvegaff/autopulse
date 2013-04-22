@@ -71,10 +71,10 @@ endif else begin
 ;oplot,db_time,db_flux/median(db_flux),color=255,psym=3
 ;;Assign database-extracted light curve into the business end
 ;;variables
-    ;time=db_time
-    ;fflat=db_flux
-    ;sig=db_err_flux
-    readcol,'fake1.txt',time,fflat,sig,format='d,d,d' ;checking out the test lightcurve ~!!!!!!!!!!!
+    time=db_time
+    fflat=db_flux
+    sig=db_err_flux
+    ;readcol,'fake1.txt',time,fflat,sig,format='d,d,d' ;checking out the test lightcurve ~!!!!!!!!!!!
 endelse
 
 ;;=============================================================================
